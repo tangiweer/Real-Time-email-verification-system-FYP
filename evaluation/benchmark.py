@@ -8,7 +8,7 @@ from datetime import datetime
 import os
 
 # Load test emails from an external file — no hardcoded PII
-base_dir = os.path.abspath(os.path.dirname(__file__))
+base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 with open(os.path.join(base_dir, "data", "benchmark_emails.txt"), "r") as f:
     TEST_EMAILS = [line.strip() for line in f if line.strip()]
 

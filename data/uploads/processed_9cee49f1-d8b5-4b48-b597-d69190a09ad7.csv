@@ -1,4 +1,0 @@
-email,status,confidence,failed_layer,ml_score,reason
-dulanma.weerakotuwa@outlook.com,uncertain,0.7,smtp,0.0,Domain 'outlook.com' is a reputable email provider. | Local-part resembles a human name pattern. | Email follows a firstname.lastname convention. | Port 25 is blocked or timed out when contacting 'outlook-com.olc.protection.outlook.com'. SMTP probe aborted.
-test_bot_999@mailinator.com,invalid,1.0,ml,1.0,Email address is classified as disposable or bot-generated (suspicion score: 100%). | Domain 'mailinator.com' is a known disposable provider (from live blocklist).
-not-an-email,invalid,0.99,syntax,0.0,Email address must contain exactly one '@' symbol.

@@ -31,7 +31,7 @@ import numpy as np
 # Ensure project root is on path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from app.services.ml_model import MLModel
+from app.services.ml_model import MLModelService
 from app.services.feature_extractor import FEATURE_ORDER
 from evaluation.comprehensive_evaluator import ComprehensiveEvaluator
 from evaluation.ood_test_set import get_ood_test_set, get_ood_test_metadata
@@ -202,10 +202,9 @@ def main() -> None:
     # Step 1: Load/train model
     print("\n[Step 1] Loading ML model...")
     start = time.time()
-    ml_model = MLModel(persist_model=True)
+    ml_model = MLModelService()
     print(f"[Step 1] Model ready ({time.time() - start:.1f}s)")
-    print(f"[Step 1] Training source: {ml_model.training_info['source']}")
-    print(f"[Step 1] Training metadata: {ml_model.training_info.get('metadata', {})}")
+    print(f"[Step 1] Training metadata: {ml_model.metadata}")
 
     # Step 2: Get training data for evaluation
     print("\n[Step 2] Preparing evaluation datasets...")
