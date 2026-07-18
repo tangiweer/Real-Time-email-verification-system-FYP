@@ -1,0 +1,21 @@
+email,status,confidence,failed_layer,ml_score,reason
+khoward@teachersoncall.com,valid,0.92,null,0.06,Local-part resembles a human name pattern. | SMTP server 'teachersoncall-com.mail.protection.outlook.com' accepted the EHLO handshake.
+jerrypersson@altoconsulting.com,valid,0.92,null,0.11,Local-part resembles a human name pattern. | SMTP server 'altoconsulting-com.mail.protection.outlook.com' accepted the EHLO handshake.
+tdabrowski@altraconstruction.com475,invalid,0.99,syntax,0.0,Email address does not conform to RFC 5322 syntax rules.
+alwaystileandstonellc@gmail.com,valid,0.92,null,0.02,Domain 'gmail.com' is a reputable email provider. | Local-part resembles a human name pattern. | SMTP server 'alt1.gmail-smtp-in.l.google.com' accepted the EHLO handshake.
+csutton@am-tec.net,uncertain,0.45,dns,0.0,DNS lookup for 'am-tec.net' timed out.  Cannot confirm mail server.
+acs.fwo@gmail.com,valid,0.92,null,0.01,Domain 'gmail.com' is a reputable email provider. | Local-part resembles a human name pattern. | Email follows a firstname.lastname convention. | SMTP server 'alt1.gmail-smtp-in.l.google.com' accepted the EHLO handshake.
+jennykuria@yahoo.com,valid,0.92,null,0.01,Domain 'yahoo.com' is a reputable email provider. | Local-part resembles a human name pattern. | SMTP server 'mta5.am0.yahoodns.net' accepted the EHLO handshake.
+amare@abataxaccounting.com,valid,0.92,null,0.07,Local-part resembles a human name pattern. | SMTP server 'ALT1.ASPMX.L.GOOGLE.com' accepted the EHLO handshake.
+ambce@msn.com,valid,0.92,null,0.01,Local-part resembles a human name pattern. | SMTP server 'msn-com.olc.protection.outlook.com' accepted the EHLO handshake.
+rick@ambeltd.com,valid,0.92,null,0.01,Local-part resembles a human name pattern. | SMTP server 'smtp1-mke.securence.com' accepted the EHLO handshake.
+info@amberhomehealthcare.com,valid,0.92,null,0.07,"Local-part resembles a human name pattern. | Local-part appears to be a role-based address (e.g., admin@, support@). | SMTP server 'mx1-usg2.ppe-hosted.com' accepted the EHLO handshake."
+sales@ameribuiltbuildings.com,valid,0.92,null,0.07,Local-part resembles a human name pattern. | SMTP server 'ameribuiltbuildings-com.mail.protection.outlook.com' accepted the EHLO handshake.
+sueawend@adstwincities.com,valid,0.92,null,0.07,Local-part resembles a human name pattern. | SMTP server 'alt1.aspmx.l.google.com' accepted the EHLO handshake.
+howardj@americanliberty.biz,valid,0.92,null,0.07,Local-part resembles a human name pattern. | SMTP server 'americanliberty-biz.mail.protection.outlook.com' accepted the EHLO handshake.
+loveth@uplinkgroup.com,uncertain,0.45,dns,0.0,DNS lookup for 'uplinkgroup.com' timed out.  Cannot confirm mail server.
+jon@americanwestinc.com,valid,0.92,null,0.06,Local-part resembles a human name pattern. | SMTP server 'americanwestinc-com.mail.protection.outlook.com' accepted the EHLO handshake.
+kristenbeckman@alliedns.com,valid,0.92,null,0.08,Local-part resembles a human name pattern. | SMTP server 'mx1-usg2.ppe-hosted.com' accepted the EHLO handshake.
+leahs@ami-imaging.com,valid,0.92,null,0.07,Local-part resembles a human name pattern. | SMTP server 'amiimaging-com0i.mail.protection.outlook.com' accepted the EHLO handshake.
+amitenterpriseinc@gmail.com,valid,0.92,null,0.01,Domain 'gmail.com' is a reputable email provider. | Local-part resembles a human name pattern. | SMTP server 'alt1.gmail-smtp-in.l.google.com' accepted the EHLO handshake.
+amlaintl@msn.com,valid,0.92,null,0.01,Local-part resembles a human name pattern. | SMTP server 'msn-com.olc.protection.outlook.com' accepted the EHLO handshake.

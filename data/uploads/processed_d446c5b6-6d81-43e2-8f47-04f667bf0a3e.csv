@@ -1,0 +1,21 @@
+email,status,confidence,failed_layer,ml_score,reason
+suspazzz@yahoo.com,valid,0.92,null,0.01,Domain 'yahoo.com' is a reputable email provider. | Local-part resembles a human name pattern. | SMTP server 'mta5.am0.yahoodns.net' accepted the EHLO handshake.
+autocare@1stopautocare.com,valid,0.92,null,0.08,Local-part resembles a human name pattern. | SMTP server '1stopautocare.com' accepted the EHLO handshake.
+gmcleod@call1source.com,valid,0.92,null,0.11,Local-part resembles a human name pattern. | SMTP server 'call1source-com.mail.protection.outlook.com' accepted the EHLO handshake.
+panderson@292designgroup.com,valid,0.92,null,0.07,Local-part resembles a human name pattern. | SMTP server '292designgroup-com.mail.protection.outlook.com' accepted the EHLO handshake.
+leandraw82@gmail.com,valid,0.92,null,0.04,Domain 'gmail.com' is a reputable email provider. | Local-part resembles a human name pattern. | SMTP server 'alt1.gmail-smtp-in.l.google.com' accepted the EHLO handshake.
+drew@3-dbuildingtech.com,valid,0.92,null,0.06,Local-part resembles a human name pattern. | SMTP server '3dbuildingtech-com0c.mail.protection.outlook.com' accepted the EHLO handshake.
+contact@3030concrete.com,valid,0.92,null,0.07,Local-part resembles a human name pattern. | SMTP server 'mx1.biz.mail.yahoo.com' accepted the EHLO handshake.
+abdulkadirjama@3hmllc.com,invalid,0.95,dns,0.0,The domain '3hmllc.com' does not exist (NXDOMAIN).
+4edoug@gmail.com,valid,0.92,null,0.02,Domain 'gmail.com' is a reputable email provider. | Local-part resembles a human name pattern. | SMTP server 'alt1.gmail-smtp-in.l.google.com' accepted the EHLO handshake.
+nathan@4rmula.com,valid,0.92,null,0.01,Local-part resembles a human name pattern. | SMTP server '4rmula-com.mail.protection.outlook.com' accepted the EHLO handshake.
+diana@5by5design.com,valid,0.92,null,0.08,Local-part resembles a human name pattern. | SMTP server 'alt1.aspmx.l.google.com' accepted the EHLO handshake.
+services@5waycontractors.com,invalid,0.95,dns,0.0,The domain '5waycontractors.com' has no MX records — it cannot receive email.
+cassandra@aamillwork.com,valid,0.92,null,0.07,Local-part resembles a human name pattern. | SMTP server 'park-mx.above.com' accepted the EHLO handshake.
+awaresoul@gmail.com,valid,0.92,null,0.01,Domain 'gmail.com' is a reputable email provider. | Local-part resembles a human name pattern. | SMTP server 'alt1.gmail-smtp-in.l.google.com' accepted the EHLO handshake.
+danwalesch@hotmail.com,valid,0.92,null,0.01,Domain 'hotmail.com' is a reputable email provider. | Local-part resembles a human name pattern. | SMTP server 'hotmail-com.olc.protection.outlook.com' accepted the EHLO handshake.
+akbmsteve@gmail.com,valid,0.92,null,0.01,Domain 'gmail.com' is a reputable email provider. | SMTP server 'alt1.gmail-smtp-in.l.google.com' accepted the EHLO handshake.
+apeaceofcakemn@gmail.com,valid,0.92,null,0.01,Domain 'gmail.com' is a reputable email provider. | Local-part resembles a human name pattern. | SMTP server 'alt1.gmail-smtp-in.l.google.com' accepted the EHLO handshake.
+cvolk38105@aol.com,suspicious,0.48,ml,0.96,Email address pattern suggests it may be temporary or auto-generated (suspicion score: 48%). | Domain 'aol.com' is a reputable email provider.
+a1elevator@yahoo.com,valid,0.92,null,0.03,Domain 'yahoo.com' is a reputable email provider. | Local-part resembles a human name pattern. | SMTP server 'mta5.am0.yahoodns.net' accepted the EHLO handshake.
+aaunireno@aol.com,valid,0.92,null,0.01,Domain 'aol.com' is a reputable email provider. | Local-part resembles a human name pattern. | SMTP server 'mx-aol.mail.gm0.yahoodns.net' accepted the EHLO handshake.

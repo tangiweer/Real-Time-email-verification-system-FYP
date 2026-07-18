@@ -1,0 +1,10 @@
+test1@gmail.com
+invalid.user.999@yahoo.com
+admin@outlook.com
+random123@mailinator.com
+support@github.com
+not.a.real.user@example.com
+test@protonmail.com
+hello@icloud.com
+spam@guerrillamail.com
+contact@apple.com
