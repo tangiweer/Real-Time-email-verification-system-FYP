@@ -33,7 +33,17 @@ class SMTPHandler(BaseEmailHandler):
             context.reasons.append(
                 "SMTP probe skipped: no MX records available from DNS layer."
             )
-            return await self._uncertain(context, start_time, "No MX records to probe.")
+            if context.status != VerificationStatus.INVALID:
+                context.status = VerificationStatus.UNCERTAIN
+                context.confidence = max(context.confidence * 0.7, 0.45)
+                context.failed_layer = FailedLayer.SMTP
+                context.suggestion = (
+                    "Email verification is inconclusive at the SMTP level.  "
+                    "The address may be valid — consider sending a confirmation email."
+                )
+            context.stop_processing = True
+            context.execution_times[self.layer_name] = round((time.perf_counter() - start_time) * 1000, 1)
+            return await super().handle(context)
 
         mx_host = context.mx_records[0]   # Highest-priority MX server
         domain = context.domain
@@ -270,7 +280,7 @@ class SMTPHandler(BaseEmailHandler):
     async def _uncertain(self, context: PipelineContext, start_time: float, reason: str) -> PipelineContext:
 
         context.execution_times[self.layer_name] = round((time.perf_counter() - start_time) * 1000, 1)
-        if context.status == VerificationStatus.VALID:
+        if context.status != VerificationStatus.INVALID:
             context.status = VerificationStatus.UNCERTAIN
             context.confidence = max(context.confidence * 0.7, 0.45)
             context.failed_layer = FailedLayer.SMTP

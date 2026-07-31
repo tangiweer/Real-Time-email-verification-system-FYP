@@ -4,7 +4,13 @@ import numpy as np
 from app.services.feature_extractor import FeatureExtractor
 
 class MLModelService:
-    def __init__(self, model_path: str = "models/rf_model.joblib"):
+    def __init__(self, model_path: str = None):
+        if model_path is None:
+            model_path = os.path.abspath(
+                os.path.join(
+                    os.path.dirname(__file__), "..", "..", "models", "rf_model.joblib"
+                )
+            )
         self.model_path = model_path
         self.model = None
         self.metadata = {}

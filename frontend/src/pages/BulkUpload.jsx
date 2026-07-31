@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { UploadCloud, CheckCircle2, AlertTriangle, XCircle, HelpCircle, Download, FileSpreadsheet } from 'lucide-react';
+import { API_BASE } from '../config';
 
 export default function BulkUpload() {
   const [file, setFile] = useState(null);
@@ -23,7 +24,7 @@ export default function BulkUpload() {
     formData.append('file', selectedFile);
 
     try {
-      const response = await fetch('http://localhost:8000/jobs/upload', {
+      const response = await fetch(`${API_BASE}/jobs/upload`, {
         method: 'POST',
         body: formData
       });
@@ -69,7 +70,7 @@ export default function BulkUpload() {
 
   const pollStatus = async (id) => {
     try {
-      const res = await fetch(`http://localhost:8000/jobs/${id}`);
+      const res = await fetch(`${API_BASE}/jobs/${id}`);
       const data = await res.json();
       
       setProgress(data.progress_percent || 0);
@@ -90,7 +91,7 @@ export default function BulkUpload() {
 
   const downloadResults = () => {
     if (!jobId) return;
-    window.location.href = `http://localhost:8000/jobs/${jobId}/download`;
+    window.location.href = `${API_BASE}/jobs/${jobId}/download`;
   };
 
   // Helper component for premium stat cards

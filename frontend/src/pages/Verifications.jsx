@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Download } from 'lucide-react';
+import { API_BASE } from '../config';
 
 export default function Verifications() {
   const [email, setEmail] = useState('');
@@ -14,7 +15,7 @@ export default function Verifications() {
     setResult(null);
 
     try {
-      const response = await fetch('/verify-email', {
+      const response = await fetch(`${API_BASE}/verify-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })

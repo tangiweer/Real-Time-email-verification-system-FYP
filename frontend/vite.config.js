@@ -19,6 +19,10 @@ export default defineConfig({
       '/health': 'http://localhost:8000',
       '/pipeline-info': 'http://localhost:8000',
       '/disposable-cache-status': 'http://localhost:8000',
+      '/ws': {
+        target: 'http://localhost:8000',
+        ws: true,
+      },
     }
   }
 })

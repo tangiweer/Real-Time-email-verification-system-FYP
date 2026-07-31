@@ -347,7 +347,7 @@ class TestSMTPHandler:
     def _make_smtp_ctx(self, email: str, mx: list = None) -> PipelineContext:
         ctx = make_context(email)
         ctx.syntax_valid = True
-        ctx.mx_records = mx or ["mail.example.com"]
+        ctx.mx_records = mx if mx is not None else ["mail.example.com"]
         ctx.local_part, ctx.domain = email.rsplit("@", 1)
         return ctx
 

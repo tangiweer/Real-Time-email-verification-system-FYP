@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { WS_BASE } from "../config";
 
 export default function LiveDashboard() {
   const [events, setEvents] = useState([]);
@@ -8,7 +9,7 @@ export default function LiveDashboard() {
 
   useEffect(() => {
     // Connect to FastAPI websocket
-    ws.current = new WebSocket("ws://localhost:8000/ws/live-pipeline");
+    ws.current = new WebSocket(`${WS_BASE}/ws/live-pipeline`);
 
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
