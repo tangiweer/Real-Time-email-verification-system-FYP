@@ -41,3 +41,10 @@ evaluation/comprehensive_evaluation_report.json
 # Environment
 .env
 .env.local
+
+# Submission exclusions
+data/*.csv
+data/*.db
+data/benchmark_emails.txt
+models/*.joblib
+models/model_comparison_report.json
