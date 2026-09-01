@@ -1,0 +1,41 @@
+services:
+
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://:${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}@redis:6379
+      - API_KEYS=${API_KEYS:?Set API_KEYS in .env}
+      - REQUIRE_AUTH=${REQUIRE_AUTH:-true}
+      - SMTP_FROM_ADDRESS=${SMTP_FROM_ADDRESS:?Set SMTP_FROM_ADDRESS in .env}
+      - SMTP_EHLO_HOST=${SMTP_EHLO_HOST:?Set SMTP_EHLO_HOST in .env}
+      # Local demo only: bypass live SMTP recipient probes. Never enable in production.
+      - MOCK_SMTP=${MOCK_SMTP:-0}
+      - SESSION_TOKEN_SECRET=${SESSION_TOKEN_SECRET:?Set SESSION_TOKEN_SECRET in .env}
+      - OUTBOUND_SMTP_HOST=${OUTBOUND_SMTP_HOST:?Set OUTBOUND_SMTP_HOST in .env}
+      - OUTBOUND_SMTP_PORT=${OUTBOUND_SMTP_PORT:-587}
+      - OUTBOUND_SMTP_FROM=${OUTBOUND_SMTP_FROM:?Set OUTBOUND_SMTP_FROM in .env}
+      - OUTBOUND_SMTP_USERNAME=${OUTBOUND_SMTP_USERNAME:-}
+      - OUTBOUND_SMTP_PASSWORD=${OUTBOUND_SMTP_PASSWORD:-}
+      - PUBLIC_APP_URL=${PUBLIC_APP_URL:-http://localhost:8000}
+      - COOKIE_SECURE=${COOKIE_SECURE:-false}
+    depends_on:
+      - redis
+    volumes:
+      # Persist SQLite DBs + uploads across container restarts/redeploys
+      - app_data:/app/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    # No host port mapping — only reachable from other services on the
+    # compose network (web -> redis:6379), never from outside the host.
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}"]
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:
+  app_data:
