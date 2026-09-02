@@ -1,7 +1,6 @@
-
-
 from __future__ import annotations
-from abc import ABC
+from abc import ABC, abstractmethod
+from typing import Optional
 from app.models import PipelineContext
 
 
@@ -9,7 +8,7 @@ class BaseEmailHandler(ABC):
 
 
     def __init__(self) -> None:
-        self._next_handler: BaseEmailHandler | None = None
+        self._next_handler: Optional["BaseEmailHandler"] = None
 
     def set_next(self, handler: BaseEmailHandler) -> BaseEmailHandler:
 

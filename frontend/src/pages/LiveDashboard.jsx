@@ -1,28 +1,77 @@
 import React, { useState, useEffect, useRef } from "react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { API_BASE, WS_BASE, apiFetch } from "../config";
 
 export default function LiveDashboard() {
   const [events, setEvents] = useState([]);
   const [stats, setStats] = useState({ valid: 0, invalid: 0, suspicious: 0, uncertain: 0 });
+  const [connectionState, setConnectionState] = useState("connecting");
+  const [connectionError, setConnectionError] = useState("");
   const ws = useRef(null);
+  const retryTimer = useRef(null);
 
   useEffect(() => {
-    // Connect to FastAPI websocket
+    let disposed = false;
+    let attempts = 0;
+
+    // The token is issued from the authenticated HTTP-only browser session,
+    // then used once for the WebSocket handshake.
     const connect = async () => {
-      const response = await apiFetch(`${API_BASE}/admin/ws-token`);
-      if (!response.ok) return;
-      const { token } = await response.json();
-      ws.current = new WebSocket(`${WS_BASE}/ws/live-pipeline?token=${encodeURIComponent(token)}`);
-      ws.current.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        setEvents((prev) => [data, ...prev].slice(0, 50));
-        setStats((prev) => ({ ...prev, [data.status]: (prev[data.status] || 0) + 1 }));
-      };
+      if (disposed) return;
+      setConnectionState("connecting");
+      setConnectionError("");
+
+      try {
+        const response = await apiFetch(`${API_BASE}/admin/ws-token`);
+        if (!response.ok) {
+          throw new Error(response.status === 401
+            ? "Administrator access is required. Save an API key on the Dashboard."
+            : "Could not create a live-stream session.");
+        }
+        const { token } = await response.json();
+        if (!token) throw new Error("The server did not provide a WebSocket token.");
+        if (disposed) return;
+
+        const socket = new WebSocket(`${WS_BASE}/ws/live-pipeline?token=${encodeURIComponent(token)}`);
+        ws.current = socket;
+        socket.onopen = () => {
+          attempts = 0;
+          setConnectionState("connected");
+        };
+        socket.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (!data.status) return;
+            setEvents((prev) => [data, ...prev].slice(0, 50));
+            setStats((prev) => ({ ...prev, [data.status]: (prev[data.status] || 0) + 1 }));
+          } catch {
+            // Ignore malformed messages; later events can still be displayed.
+          }
+        };
+        socket.onerror = () => setConnectionState("disconnected");
+        socket.onclose = () => {
+          if (disposed) return;
+          setConnectionState("disconnected");
+          attempts += 1;
+          retryTimer.current = window.setTimeout(connect, Math.min(1000 * 2 ** attempts, 15000));
+        };
+      } catch (error) {
+        if (disposed) return;
+        setConnectionState("error");
+        setConnectionError(error.message || "Unable to connect to the live pipeline.");
+        // Authentication needs user action; transient backend/network failures
+        // should recover on their own.
+        if (!String(error.message).includes("Administrator access is required")) {
+          attempts += 1;
+          retryTimer.current = window.setTimeout(connect, Math.min(1000 * 2 ** attempts, 15000));
+        }
+      }
     };
     connect();
 
     return () => {
+      disposed = true;
+      window.clearTimeout(retryTimer.current);
       if (ws.current) {
         ws.current.close();
       }
@@ -36,11 +85,32 @@ export default function LiveDashboard() {
     { name: "Uncertain", value: stats.uncertain },
   ];
 
+  const stagesFor = (event) => [
+    ["syntax", "Syntax"],
+    ["dns", "DNS / MX"],
+    ["ml", "ML risk"],
+    ["smtp", "SMTP"],
+  ].map(([key, label]) => {
+    const duration = event.execution_times?.[key];
+    const isDecisionLayer = event.failed_layer === key;
+    const outcome = duration === undefined
+      ? "Skipped"
+      : isDecisionLayer && event.status === "invalid" ? "Rejected"
+      : isDecisionLayer && event.status === "uncertain" ? "Inconclusive"
+      : isDecisionLayer && event.status === "suspicious" ? "Flagged"
+      : "Passed";
+    return { key, label, duration, outcome };
+  });
+
   return (
     <div className="grid-container">
       <h1 className="intro-title" style={{ marginBottom: "0.5rem" }}>Live Pipeline Dashboard</h1>
       <p style={{ color: "var(--text-muted)", marginBottom: "2rem", fontSize: "1.1rem" }}>
         Real-time view of the verification gateway powered by WebSockets.
+      </p>
+      <p style={{ color: connectionState === "connected" ? "var(--status-valid)" : "var(--text-muted)", marginTop: "-1.3rem", marginBottom: "1.5rem", fontSize: "0.9rem" }}>
+        <span aria-hidden="true">● </span>
+        {connectionState === "connected" ? "Live stream connected" : connectionState === "connecting" ? "Connecting to live stream…" : connectionError || "Reconnecting to live stream…"}
       </p>
 
       <div className="stat-cards-grid" style={{ marginBottom: "2rem" }}>
@@ -69,7 +139,7 @@ export default function LiveDashboard() {
           </div>
           <div style={{ height: "350px", marginTop: "1rem" }}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
+              <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                 <XAxis dataKey="name" stroke="var(--text-muted)" tick={{ fill: 'var(--text-muted)' }} />
                 <YAxis stroke="var(--text-muted)" tick={{ fill: 'var(--text-muted)' }} />
@@ -83,21 +153,12 @@ export default function LiveDashboard() {
                     color: "var(--text-main)"
                   }} 
                 />
-                <Line 
-                  type="monotone" 
+                <Bar
                   dataKey="value" 
-                  stroke="url(#colorUv)" 
-                  strokeWidth={4} 
-                  dot={{ r: 6, fill: "var(--brand-primary)", strokeWidth: 2, stroke: "#fff" }} 
-                  activeDot={{ r: 8, fill: "var(--brand-accent)", strokeWidth: 0 }} 
+                  fill="var(--brand-primary)"
+                  radius={[8, 8, 0, 0]}
                 />
-                <defs>
-                  <linearGradient id="colorUv" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="var(--brand-primary)" />
-                    <stop offset="100%" stopColor="var(--brand-accent)" />
-                  </linearGradient>
-                </defs>
-              </LineChart>
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
@@ -167,6 +228,28 @@ export default function LiveDashboard() {
                       }}></span>
                       Confidence: {(ev.confidence * 100).toFixed(1)}%
                     </p>
+                    {ev.source === "registration" && (
+                      <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>Registration attempt</p>
+                    )}
+                    {ev.source === "bulk" && (
+                      <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>Bulk verification</p>
+                    )}
+                    {ev.status === "invalid" && ev.reasons?.length > 0 && (
+                      <p style={{ fontSize: "0.8rem", color: "var(--status-invalid)", marginTop: "0.5rem", maxWidth: "440px" }}>
+                        Reason: {ev.reasons.join(" ")}
+                      </p>
+                    )}
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", marginTop: "0.75rem" }}>
+                      {stagesFor(ev).map((stage) => (
+                        <span key={stage.key} title={`${stage.label}: ${stage.outcome}${stage.duration !== undefined ? ` (${stage.duration} ms)` : ""}`} style={{
+                          fontSize: "0.7rem", padding: "0.25rem 0.45rem", borderRadius: "999px",
+                          color: stage.outcome === "Passed" ? "var(--status-valid)" : stage.outcome === "Skipped" ? "var(--text-muted)" : "var(--status-warning)",
+                          background: stage.outcome === "Passed" ? "var(--status-valid-bg)" : "rgba(148,163,184,0.14)",
+                        }}>
+                          {stage.label}: {stage.outcome}{stage.duration !== undefined ? ` · ${stage.duration}ms` : ""}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                   <span className="badge" style={{
                     background: ev.status === "valid" ? "var(--status-valid-bg)" : 

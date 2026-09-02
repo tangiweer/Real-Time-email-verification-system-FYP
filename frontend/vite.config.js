@@ -19,6 +19,9 @@ export default defineConfig({
       '/health': 'http://localhost:8000',
       '/pipeline-info': 'http://localhost:8000',
       '/disposable-cache-status': 'http://localhost:8000',
+      // The dashboard uses this route to create its authenticated browser
+      // session and obtain the short-lived WebSocket token.
+      '/admin': 'http://localhost:8000',
       '/ws': {
         target: 'http://localhost:8000',
         ws: true,

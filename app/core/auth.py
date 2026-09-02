@@ -24,24 +24,51 @@ import os
 import time
 import hmac
 import hashlib
+from typing import Optional
 
 from fastapi import Header, HTTPException, Request, status
+
+from pathlib import Path
+
+try:
+    from dotenv import load_dotenv
+    env_path = Path(__file__).resolve().parent.parent.parent / ".env"
+    if env_path.exists():
+        load_dotenv(dotenv_path=env_path)
+except ImportError:
+    pass
 
 logger = logging.getLogger("email_verifier.auth")
 
 
+def _reload_env_if_needed():
+    try:
+        from dotenv import load_dotenv
+        env_path = Path(__file__).resolve().parent.parent.parent / ".env"
+        if env_path.exists():
+            load_dotenv(dotenv_path=env_path, override=True)
+    except ImportError:
+        pass
+
+
 def _configured_keys() -> set[str]:
     raw = os.getenv("API_KEYS", "")
+    if not raw:
+        _reload_env_if_needed()
+        raw = os.getenv("API_KEYS", "")
     return {k.strip() for k in raw.split(",") if k.strip()}
 
 
-def is_valid_api_key(api_key: str | None) -> bool:
+def is_valid_api_key(api_key: Optional[str]) -> bool:
     """Return whether an API key is allowed in the current deployment mode."""
     return not _require_auth() or bool(api_key and api_key in _configured_keys())
 
 
 def _token_secret() -> bytes:
     secret = os.getenv("SESSION_TOKEN_SECRET", "")
+    if not secret:
+        _reload_env_if_needed()
+        secret = os.getenv("SESSION_TOKEN_SECRET", "")
     if not secret:
         raise RuntimeError("SESSION_TOKEN_SECRET must be configured when authentication is enabled.")
     return secret.encode()
@@ -56,7 +83,7 @@ def issue_browser_token(api_key: str, scope: str, ttl_seconds: int) -> str:
     return f"{payload}.{signature}"
 
 
-def validate_browser_token(token: str | None, scope: str) -> str | None:
+def validate_browser_token(token: Optional[str], scope: str) -> Optional[str]:
     if not token:
         return None
     try:
@@ -74,7 +101,7 @@ def _require_auth() -> bool:
     return os.getenv("REQUIRE_AUTH", "true").strip().lower() not in ("false", "0", "no")
 
 
-async def require_api_key(request: Request, x_api_key: str | None = Header(default=None)) -> str:
+async def require_api_key(request: Request, x_api_key: Optional[str] = Header(default=None)) -> str:
     """FastAPI dependency: raises 401 unless a valid API key is supplied.
 
     Returns the validated key so endpoints can use it as an identity/quota

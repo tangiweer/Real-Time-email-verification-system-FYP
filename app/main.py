@@ -16,9 +16,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-# Setup path mapping to allow running this file directly
 import sys
 import os
+from pathlib import Path
+
+# Automatically load .env file if present
+try:
+    from dotenv import load_dotenv
+    env_path = Path(__file__).resolve().parent.parent / ".env"
+    if env_path.exists():
+        load_dotenv(dotenv_path=env_path)
+except ImportError:
+    pass
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from app.services.database import init_db, get_db_session, UPLOAD_DIR
@@ -135,7 +145,12 @@ async def lifespan(app: FastAPI):
     )
 
     # Start the bulk-CSV worker polling loop
-    app.state.worker = BulkJobWorker(app.state.pipeline)
+    app.state.worker = BulkJobWorker(
+        app.state.pipeline,
+        on_verification=lambda context: manager.broadcast_verification(
+            _live_event(_build_response(context), source="bulk")
+        ),
+    )
     await app.state.worker.start()
 
     yield
@@ -259,10 +274,16 @@ def _build_response(ctx: PipelineContext) -> EmailVerifyResponse:
 
 
 def _hash_password(password: str) -> str:
-    """Hash a password with a per-user salt using Python's memory-hard scrypt."""
+    """Hash a password with a per-user salt using Python's memory-hard scrypt, or pbkdf2 if scrypt is unavailable."""
     salt = secrets.token_bytes(16)
-    derived = hashlib.scrypt(password.encode("utf-8"), salt=salt, n=2**14, r=8, p=1)
-    return f"scrypt$16384$8$1${salt.hex()}${derived.hex()}"
+    if hasattr(hashlib, "scrypt"):
+        try:
+            derived = hashlib.scrypt(password.encode("utf-8"), salt=salt, n=2**14, r=8, p=1)
+            return f"scrypt$16384$8$1${salt.hex()}${derived.hex()}"
+        except (AttributeError, ValueError):
+            pass
+    derived = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 100000)
+    return f"pbkdf2_sha256$100000${salt.hex()}${derived.hex()}"
 
 
 def _registration_allowed(context: PipelineContext) -> bool:
@@ -306,8 +327,8 @@ async def websocket_endpoint(websocket: WebSocket):
         manager.disconnect(websocket)
 
 
-def _live_event(response: EmailVerifyResponse) -> dict:
-    """Publish an operational event without exposing the full address to viewers."""
+def _live_event(response: EmailVerifyResponse, source: str = "verification") -> dict:
+    """Publish an admin-only operational event without exposing the full address."""
     local, _, domain = response.email.partition("@")
     masked = f"{local[:1]}***@{domain}" if domain else "redacted"
     return {
@@ -316,6 +337,15 @@ def _live_event(response: EmailVerifyResponse) -> dict:
         "status": response.status.value,
         "confidence": response.confidence,
         "failed_layer": response.failed_layer.value,
+        "reasons": response.reasons,
+        "source": source,
+        # These are operational measurements, not personal data. They allow
+        # the live dashboard to explain which pipeline layers ran and where
+        # time was spent for each masked verification event.
+        "execution_times": response.execution_times,
+        "ml_score": response.ml_score,
+        "mx_record_count": len(response.mx_records),
+        "smtp_deliverable": response.smtp_deliverable,
     }
 
 
@@ -472,7 +502,6 @@ async def verify_email(
 @app.post(
     "/register",
     response_model=RegistrationResponse,
-    status_code=201,
     tags=["Registration"],
     summary="Register only after automated email verification succeeds",
 )
@@ -492,18 +521,24 @@ async def register(
         select(User).where(func.lower(User.email) == registration.email)
     )
     if existing.scalar_one_or_none():
-        raise HTTPException(status_code=409, detail="An account already exists for this email address.")
+        # Keep this indistinguishable from any other unsuccessful registration
+        # so public callers cannot use this endpoint to enumerate accounts.
+        return RegistrationResponse(
+            registered=False,
+            message="Registration could not be completed. Please try again.",
+        )
 
     context = await app.state.pipeline.handle(PipelineContext(email=registration.email))
     verification = _build_response(context)
 
+    # Registration remains deliberately vague to the customer. Detailed
+    # diagnostic information is sent only to authenticated live dashboards.
+    await manager.broadcast_verification(_live_event(verification, source="registration"))
+
     if context.status == VerificationStatus.INVALID:
-        raise HTTPException(
-            status_code=422,
-            detail={
-                "message": "Registration cannot proceed because this email address failed verification.",
-                "verification": verification.model_dump(mode="json"),
-            },
+        return RegistrationResponse(
+            registered=False,
+            message="Registration could not be completed. Please try again.",
         )
 
     confirmed_by_smtp = _registration_allowed(context)

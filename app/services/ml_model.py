@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from typing import Any
+from typing import Any, Optional
 
 import joblib
 
@@ -11,7 +11,7 @@ import joblib
 class MLModelService:
     """Load the project's versioned ``{model, metadata}`` joblib artifact."""
 
-    def __init__(self, model_path: str | None = None) -> None:
+    def __init__(self, model_path: Optional[str] = None) -> None:
         self.model_path = model_path or os.path.abspath(
             os.path.join(os.path.dirname(__file__), "..", "..", "models", "rf_model.joblib")
         )

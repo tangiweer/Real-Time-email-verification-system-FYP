@@ -18,6 +18,11 @@ export default function RegistrationDemo() {
       return;
     }
 
+    if (password.length < 12) {
+      setMessage('Password must be at least 12 characters.');
+      return;
+    }
+
     setStatus('loading');
     try {
       const response = await fetch(`${API_BASE}/register`, {
@@ -26,9 +31,9 @@ export default function RegistrationDemo() {
         body: JSON.stringify({ name, email, password }),
       });
       const data = await response.json().catch(() => ({}));
-      setMessage(response.ok
+      setMessage(response.ok && data.registered
         ? (data.message || 'Registration successful.')
-        : (response.status === 409 ? 'An account with this email already exists.' : 'Registration failed. Please try again.'));
+        : 'Registration failed. Please try again.');
     } catch {
       setMessage('Unable to connect. Please try again.');
     } finally {
@@ -42,8 +47,8 @@ export default function RegistrationDemo() {
         <h1>Register</h1>
         <label><span><b aria-hidden="true">*</b> Name</span><input type="text" autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} required disabled={status === 'loading'} /></label>
         <label><span><b aria-hidden="true">*</b> Email</span><input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required disabled={status === 'loading'} /></label>
-        <label><span><b aria-hidden="true">*</b> Password</span><input type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} required disabled={status === 'loading'} /></label>
-        <label><span><b aria-hidden="true">*</b> Confirm password</span><input type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required disabled={status === 'loading'} /></label>
+        <label><span><b aria-hidden="true">*</b> Password</span><input type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} required minLength="12" disabled={status === 'loading'} /></label>
+        <label><span><b aria-hidden="true">*</b> Confirm password</span><input type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required minLength="12" disabled={status === 'loading'} /></label>
         <div className="simple-registration-divider" />
         {message && <p className="simple-registration-message" role="status">{message}</p>}
         <button type="submit" disabled={status === 'loading'}>{status === 'loading' ? 'Registering…' : 'Register'}</button>

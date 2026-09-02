@@ -65,7 +65,9 @@ class RegistrationRequest(BaseModel):
 class RegistrationResponse(BaseModel):
     registered: bool
     message: str
-    verification: EmailVerifyResponse
+    # Never return rejection diagnostics to an unauthenticated registrant.
+    # Administrators receive those details through the authenticated live feed.
+    verification: Optional[EmailVerifyResponse] = None
 
 
 # --- Outbound payload ---

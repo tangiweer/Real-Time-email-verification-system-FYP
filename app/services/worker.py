@@ -13,7 +13,7 @@ import time
 import logging
 import hashlib
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Awaitable, Callable, Optional
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -27,8 +27,15 @@ MAX_CSV_ROWS = 10_000
 STALE_JOB_SECONDS = 60 * 60
 
 class BulkJobWorker:
-    def __init__(self, pipeline: BaseEmailHandler):
+    def __init__(
+        self,
+        pipeline: BaseEmailHandler,
+        on_verification: Optional[Callable[[PipelineContext], Awaitable[None]]] = None,
+    ):
         self.pipeline = pipeline
+        # Kept as a callback so this service does not depend on the FastAPI
+        # application or WebSocket implementation.
+        self.on_verification = on_verification
         self.is_running = False
         self._task: Optional[asyncio.Task] = None
 
@@ -182,6 +189,12 @@ class BulkJobWorker:
             csv_rows = []
             
             for ctx, elapsed_ms in results:
+                if self.on_verification:
+                    try:
+                        await self.on_verification(ctx)
+                    except Exception as exc:
+                        # A disconnected dashboard must never stop a bulk job.
+                        logger.warning("[worker] Could not publish live event: %s", exc)
                 if ctx.status == VerificationStatus.VALID:
                     valid_cnt += 1
                 elif ctx.status == VerificationStatus.INVALID:

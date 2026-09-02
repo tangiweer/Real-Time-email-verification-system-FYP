@@ -1,8 +1,7 @@
-
-
 from __future__ import annotations
 import asyncio
 import time
+from typing import Optional
 import dns.resolver
 import dns.exception
 import dns.asyncresolver
@@ -85,7 +84,7 @@ class DNSHandler(BaseEmailHandler):
     # Async MX resolution (+ piggybacked SPF/DMARC TXT lookups)
 
     @staticmethod
-    async def _lookup_mx(domain: str) -> tuple[list[str], bool, bool, str | None]:
+    async def _lookup_mx(domain: str) -> tuple[list[str], bool, bool, Optional[str]]:
 
         resolver = dns.asyncresolver.Resolver()
         resolver.timeout = DNS_TIMEOUT

@@ -12,6 +12,7 @@ from app.pipeline.ml_handler import MLHandler
 from app.pipeline.smtp_handler import SMTPHandler
 from app.services.feature_extractor import FeatureExtractor
 from app.services.heuristic_engine import HeuristicEngine
+from app.services.disposable_cache import DisposableDomainsCache
 from app.utils.entropy import shannon_entropy, normalised_entropy
 
 
@@ -53,7 +54,7 @@ class TestRegistrationContracts:
 class TestModelContract:
     @pytest.mark.asyncio
     async def test_current_artifact_scores_disposable_class_as_risk(self):
-        handler = MLHandler()
+        handler = MLHandler(disposable_cache=DisposableDomainsCache())
         context = await handler.handle(make_context("temp123@mailinator.com"))
         assert context.status in (VerificationStatus.SUSPICIOUS, VerificationStatus.INVALID)
 
@@ -327,7 +328,7 @@ class TestMLHandler:
 
     @pytest.mark.asyncio
     async def test_disposable_email_flagged(self):
-        handler = MLHandler()
+        handler = MLHandler(disposable_cache=DisposableDomainsCache())
         ctx = self._make_ml_ctx("temp123@mailinator.com")
         ctx = await handler.handle(ctx)
         assert ctx.status in (VerificationStatus.SUSPICIOUS, VerificationStatus.INVALID)
@@ -524,7 +525,8 @@ def build_full_pipeline():
     from app.pipeline.dns_handler import DNSHandler
     from app.pipeline.ml_handler import MLHandler
     from app.pipeline.smtp_handler import SMTPHandler
-    s = SyntaxHandler(); d = DNSHandler(); m = MLHandler(); p = SMTPHandler()
+    from app.services.disposable_cache import DisposableDomainsCache
+    s = SyntaxHandler(); d = DNSHandler(); m = MLHandler(disposable_cache=DisposableDomainsCache()); p = SMTPHandler()
     s.set_next(d).set_next(m).set_next(p)
     return s
 
@@ -593,7 +595,7 @@ class TestFullPipeline:
         pipeline = build_full_pipeline()
         with patch.object(DNSHandler, '_lookup_mx', return_value=(["mail.catchall.com"], False, False, None)), \
              patch.object(SMTPHandler, '_is_catchall_domain', return_value=True):
-            ctx = await pipeline.handle(make_context("user@catchall.com"))
+            ctx = await pipeline.handle(make_context("john.smith@catchall.com"))
         assert ctx.is_catchall is True
         assert ctx.status == VerificationStatus.UNCERTAIN
 

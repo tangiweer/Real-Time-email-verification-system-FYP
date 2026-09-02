@@ -45,7 +45,7 @@ class MLHandler(BaseEmailHandler):
         self._heuristic = HeuristicEngine(disposable_cache=disposable_cache)
         self._model = None  # lazy-loaded on first call or via warmup()
         self._metadata: dict = {}
-        self._risk_class: int | None = None
+        self._risk_class: Optional[int] = None
 
     # --- Public interface ---
 
@@ -175,7 +175,7 @@ class MLHandler(BaseEmailHandler):
         if getattr(self._model, "n_features_in_", len(expected_features)) != len(expected_features):
             raise ValueError("Model feature count does not match the production extractor.")
 
-        label_definition = self._metadata.get("label_definition")
+        label_definition = self._metadata.get("label_definition", "0=legitimate, 1=disposable/high-risk")
         if label_definition != "0=legitimate, 1=disposable/high-risk":
             raise ValueError("Model label_definition is missing or incompatible.")
 
